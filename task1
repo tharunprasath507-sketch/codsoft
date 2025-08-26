@@ -1,0 +1,35 @@
+# Movie Genre Classification
+
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+url = "https://raw.githubusercontent.com/Jcharis/Machine-Learning-Datasets/master/movie_genres.csv"
+data = pd.read_csv(url)
+print("Dataset Shape:", data.shape)
+print(data.head())
+data = data.dropna(subset=['plot', 'genre'])
+X = data['plot']
+y = data['genre']
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42, stratify=y
+)
+vectorizer = TfidfVectorizer(stop_words="english", max_features=5000)
+X_train_tfidf = vectorizer.fit_transform(X_train)
+X_test_tfidf = vectorizer.transform(X_train)
+model = LogisticRegression(max_iter=200)
+model.fit(X_train_tfidf, y_train)
+y_pred = model.predict(X_test_tfidf)
+print("\n✅ Accuracy:", accuracy_score(y_test, y_pred))
+print("\n📊 Classification Report:\n", classification_report(y_test, y_pred))
+print("\n🔎 Confusion Matrix:\n", confusion_matrix(y_test, y_pred))
+samples = [
+    "A group of astronauts travel through a wormhole in search of a new home for humanity.",
+    "A hilarious story about three friends who go on a road trip full of adventures."
+]
+sample_tfidf = vectorizer.transform(samples)
+predictions = model.predict(sample_tfidf)
+
+for plot, genre in zip(samples, predictions):
+    print(f"\nPlot: {plot}\nPredicted Genre: {genre}")
